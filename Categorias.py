@@ -36,3 +36,26 @@ async def obtener_categoria_con_productos(categoria_id: int, session: SessionDep
     _ = categoria.productos
 
     return categoria
+
+@router.put("/{categoria_id}", response_model=Categoria)
+async def actualizar_categoria(categoria_id: int, datos: CategoriaBase, session: SessionDep):
+    categoria = session.get(Categoria, categoria_id)
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada.")
+
+    if datos.nombre:
+        query = select(Categoria).where(
+            Categoria.nombre == datos.nombre,
+            Categoria.id != categoria_id
+        )
+        existente = session.exec(query).first()
+        if existente:
+            raise HTTPException(status_code=400, detail="Ya existe una categoría con ese nombre.")
+
+    for key, value in datos.model_dump(exclude_unset=True).items():
+        setattr(categoria, key, value)
+
+    session.add(categoria)
+    session.commit()
+    session.refresh(categoria)
+    return categoria
