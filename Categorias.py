@@ -39,6 +39,21 @@ async def obtener_categoria_con_productos(categoria_id: int, session: SessionDep
 
     return categoria
 
+@router.get("/nombre/{nombre_categoria}", response_model=Categoria)
+async def obtener_categoria_por_nombre(nombre_categoria: str, session: SessionDep):
+    query = select(Categoria).where(Categoria.nombre.ilike(nombre_categoria))
+    categoria = session.exec(query).first()
+
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+    productos_query = select(Producto).where(
+        (Producto.categoria_id == categoria.id) & (Producto.status == True)
+    )
+    categoria.productos = session.exec(productos_query).all()
+
+    return categoria
+
 @router.put("/{categoria_id}", response_model=Categoria)
 async def actualizar_categoria(categoria_id: int, datos: CategoriaBase, session: SessionDep):
     categoria = session.get(Categoria, categoria_id)
