@@ -1,6 +1,6 @@
 from db import SessionDep
 from fastapi import APIRouter, HTTPException
-from models import Categoria, CategoriaBase
+from models import Categoria, CategoriaBase, Producto
 from sqlmodel import select
 
 router = APIRouter()
@@ -27,13 +27,17 @@ async def listar_categorias_activas(session: SessionDep):
 
 @router.get("/{categoria_id}", response_model=Categoria)
 async def obtener_categoria_con_productos(categoria_id: int, session: SessionDep):
-    query = select(Categoria).where(Categoria.id == categoria_id)
-    categoria = session.exec(query).first()
+    categoria = session.get(Categoria, categoria_id)
 
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
-    _ = categoria.productos
+    query = select(Producto).where(
+        (Producto.categoria_id == categoria_id) & (Producto.status == True)
+    )
+    productos = session.exec(query).all()
+
+    categoria.productos = productos
 
     return categoria
 
@@ -63,27 +67,43 @@ async def actualizar_categoria(categoria_id: int, datos: CategoriaBase, session:
 @router.patch("/{categoria_id}/desactivar", response_model=Categoria)
 async def desactivar_categoria(categoria_id: int, session: SessionDep):
     categoria = session.get(Categoria, categoria_id)
-    if not categoria:
-        raise HTTPException(status_code=404, detail="Categoría no encontrada.")
 
-    if not categoria.status:
-        raise HTTPException(status_code=400, detail="La categoría ya está inactiva.")
-
-    categoria.status = False
-    session.add(categoria)
-    session.commit()
-    session.refresh(categoria)
-    return categoria
-
-@router.patch("/categorias/{categoria_id}/activar")
-def activar_categoria(categoria_id: int, session: SessionDep):
-    categoria = session.get(Categoria, categoria_id)
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
-    categoria.status = True
+    categoria.status = False
+
+    query = select(Producto).where(Producto.categoria_id == categoria_id)
+    productos = session.exec(query).all()
+    for producto in productos:
+        producto.status = False
+
     session.add(categoria)
     session.commit()
     session.refresh(categoria)
 
-    return {"message": "Categoría activada correctamente"}
+    return categoria
+
+@router.patch("/{categoria_id}/activar", response_model=Categoria)
+async def activar_categoria(categoria_id: int, session: SessionDep):
+    categoria = session.get(Categoria, categoria_id)
+
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+    if categoria.status:
+        raise HTTPException(status_code=400, detail="La categoría ya está activa")
+
+    categoria.status = True
+
+    query = select(Producto).where(Producto.categoria_id == categoria_id)
+    productos = session.exec(query).all()
+    for producto in productos:
+        producto.status = True
+
+    session.add(categoria)
+    session.commit()
+    session.refresh(categoria)
+
+    return categoria
+
