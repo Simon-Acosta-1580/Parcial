@@ -23,7 +23,7 @@ class Categoria(CategoriaBase, table=True):
 
 class Producto(ProductoBase, table=True):
     id: Optional[int] = Field(default=None, primary_key=True)
-    categoria_id: int = Field(foreign_key="categoria.id")
+    categoria_id: int = Field(default= None, foreign_key="categoria.id")
     categoria: Optional[Categoria] = Relationship(back_populates="productos")
 
 
