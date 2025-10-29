@@ -74,3 +74,16 @@ async def desactivar_categoria(categoria_id: int, session: SessionDep):
     session.commit()
     session.refresh(categoria)
     return categoria
+
+@router.patch("/categorias/{categoria_id}/activar")
+def activar_categoria(categoria_id: int, session: SessionDep):
+    categoria = session.get(Categoria, categoria_id)
+    if not categoria:
+        raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+    categoria.status = True
+    session.add(categoria)
+    session.commit()
+    session.refresh(categoria)
+
+    return {"message": "Categoría activada correctamente"}
