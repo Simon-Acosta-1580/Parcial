@@ -30,3 +30,13 @@ def crear_producto(producto: ProductoCreate, session: SessionDep):
     session.refresh(nuevo_producto)
 
     return nuevo_producto
+
+@router.get("/", response_model=list[Producto])
+async def listar_productos(session: SessionDep):
+    query = select(Producto).where(Producto.status == True)
+    productos = session.exec(query).all()
+
+    if not productos:
+        raise HTTPException(status_code=404, detail="No hay productos activos registrados")
+
+    return productos

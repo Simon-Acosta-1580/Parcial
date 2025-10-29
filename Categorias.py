@@ -28,7 +28,6 @@ async def listar_categorias_activas(session: SessionDep):
 @router.get("/{categoria_id}", response_model=Categoria)
 async def obtener_categoria_con_productos(categoria_id: int, session: SessionDep):
     categoria = session.get(Categoria, categoria_id)
-
     if not categoria:
         raise HTTPException(status_code=404, detail="Categoría no encontrada")
 
@@ -36,7 +35,6 @@ async def obtener_categoria_con_productos(categoria_id: int, session: SessionDep
         (Producto.categoria_id == categoria_id) & (Producto.status == True)
     )
     productos = session.exec(query).all()
-
     categoria.productos = productos
 
     return categoria
