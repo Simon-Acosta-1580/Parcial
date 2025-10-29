@@ -1,7 +1,7 @@
 from fastapi import APIRouter, HTTPException, status
 from sqlmodel import select
 from db import SessionDep
-from models import Producto, ProductoCreate, Categoria
+from models import Producto,ProductoBase, ProductoCreate, Categoria
 
 router = APIRouter()
 
@@ -40,3 +40,46 @@ async def listar_productos(session: SessionDep):
         raise HTTPException(status_code=404, detail="No hay productos activos registrados")
 
     return productos
+
+@router.get("/{producto_id}", response_model=Producto)
+async def obtener_producto_con_categoria(producto_id: int, session: SessionDep):
+    producto = session.get(Producto, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    if producto.categoria_id:
+        categoria = session.get(Categoria, producto.categoria_id)
+        producto.categoria = categoria
+
+    return producto
+
+@router.put("/{producto_id}", response_model=Producto)
+async def actualizar_producto(producto_id: int, datos: ProductoBase, session: SessionDep):
+    producto = session.get(Producto, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    if datos.nombre:
+        query = select(Producto).where(
+            Producto.nombre == datos.nombre,
+            Producto.id != producto_id
+        )
+        existente = session.exec(query).first()
+        if existente:
+            raise HTTPException(status_code=400, detail="Ya existe un producto con ese nombre")
+
+    if datos.stock is not None and datos.stock < 0:
+        raise HTTPException(status_code=400, detail="El stock no puede ser negativo")
+
+    if datos.categoria_id:
+        categoria = session.get(Categoria, datos.categoria_id)
+        if not categoria:
+            raise HTTPException(status_code=404, detail="Categoría no encontrada")
+
+    for key, value in datos.model_dump(exclude_unset=True).items():
+        setattr(producto, key, value)
+
+    session.add(producto)
+    session.commit()
+    session.refresh(producto)
+    return producto
