@@ -83,3 +83,40 @@ async def actualizar_producto(producto_id: int, datos: ProductoBase, session: Se
     session.commit()
     session.refresh(producto)
     return producto
+
+@router.patch("/{producto_id}/desactivar", response_model=Producto)
+async def desactivar_producto(producto_id: int, session: SessionDep):
+    producto = session.get(Producto, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    if not producto.status:
+        raise HTTPException(status_code=400, detail="El producto ya está inactivo")
+
+    producto.status = False
+    session.add(producto)
+    session.commit()
+    session.refresh(producto)
+
+    return producto
+
+@router.patch("/{producto_id}/activar", response_model=Producto)
+async def activar_producto(producto_id: int, session: SessionDep):
+    producto = session.get(Producto, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    if producto.status:
+        raise HTTPException(status_code=400, detail="El producto ya está activo")
+
+    if producto.categoria_id:
+        categoria = session.get(Categoria, producto.categoria_id)
+        if categoria and not categoria.status:
+            raise HTTPException(status_code=400, detail="No se puede activar el producto porque su categoría está inactiva")
+
+    producto.status = True
+    session.add(producto)
+    session.commit()
+    session.refresh(producto)
+
+    return producto
