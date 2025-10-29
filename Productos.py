@@ -120,3 +120,25 @@ async def activar_producto(producto_id: int, session: SessionDep):
     session.refresh(producto)
 
     return producto
+
+@router.patch("/{producto_id}/restar_stock", response_model=Producto)
+async def restar_stock(producto_id: int, cantidad: int, session: SessionDep):
+    producto = session.get(Producto, producto_id)
+    if not producto:
+        raise HTTPException(status_code=404, detail="Producto no encontrado")
+
+    if not producto.status:
+        raise HTTPException(status_code=400, detail="No se puede modificar el stock de un producto inactivo")
+
+    if cantidad <= 0:
+        raise HTTPException(status_code=400, detail="La cantidad a restar debe ser mayor a 0")
+
+    if producto.stock - cantidad < 0:
+        raise HTTPException(status_code=400, detail=f"Stock insuficiente. Solo hay {producto.stock} unidades disponibles")
+
+    producto.stock -= cantidad
+    session.add(producto)
+    session.commit()
+    session.refresh(producto)
+
+    return producto
