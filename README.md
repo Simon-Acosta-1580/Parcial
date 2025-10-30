@@ -20,7 +20,7 @@
 
 <h2>Estructura del Proyecto</h2>
 <pre>
-ProyectoIntegrador/
+Parcial/
 ├── main.py
 ├── db.py
 ├── models.py
@@ -31,7 +31,7 @@ ProyectoIntegrador/
 
 <hr>
 
-<h2>⚙️ Configuración del Entorno</h2>
+<h2>Configuración del Entorno</h2>
 <ol>
 <li>Clonar el repositorio:<br><code>git clone https://github.com/Simon-Acosta-1580/Parcial.git</code></li>
 <li>Crear entorno virtual:<br><code>python -m venv .venv</code></li>
