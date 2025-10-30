@@ -2,7 +2,7 @@
 <h1> Parcial corte 2 desarrollo de software — Sistema de Gestión de Categorías y Productos</h1>
 
 <h2>Descripción General</h2>
-<p>Este proyecto implementa una <strong>API RESTful</strong> desarrollada con <strong>FastAPI</strong> y <strong>SQLModel</strong>, con el proposito de generar <strong>categorías</strong> y <strong>productos</strong> dentro de un contexto empresarial o comercial.</p>
+<p>Este proyecto implementa una interfaz de programacion de aplicaciones desarrollada con <strong>FastAPI</strong> y <strong>SQLModel</strong>, con el proposito de generar <strong>categorías</strong> y <strong>productos</strong> dentro de un contexto empresarial o comercial.</p>
 <p>Incluye relaciones entre modelos, persistencia de datos, validaciones lógicas y generación automática de la base de datos.</p>
 
 <hr>
